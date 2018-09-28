@@ -1,6 +1,11 @@
 NWORKING = require('DiscordWrapperNetworking.js');
 
-function DiscordWrapperApi(){
+function DiscordWrapperApi(Token){
+
+	token = Token;
+	heartbeatLoop = undefined;
+
+
 	networking = NWORKING.DiscordWrapperNetworking((data) => {
 		var GatewayOp = JSON.parse(data);
 		switch(GatewayOp.op){
@@ -17,7 +22,7 @@ function DiscordWrapperApi(){
 				HandleInvalidSession();
 			break;
 			case 10: //HELLO
-				HandleHello();
+				HandleHello(GatewayOp);
 			break;
 			case 11: //HEARTBEAT ACK
 				HandleHeartbeatAck();
@@ -25,7 +30,7 @@ function DiscordWrapperApi(){
 		}
 	});
 	function HandleEvent(GatewayOp){
-
+		console.log("Event Dispatch OPCODE" + " - " + GatewayOp.t);
 	}
 	function HandleHeartbeat(){
 		console.log("Heartbeat OPCODE");
@@ -36,10 +41,46 @@ function DiscordWrapperApi(){
 	function HandleInvalidSession(){
 		console.log("Invalid Session OPCODE");	
 	}
-	function HandleHello(){
+	function HandleHello(GatewayOp){
 		console.log("Hello OPCODE");
+		InitHeartbeat(rec.d.heartbeat_interval); //won't beat immediately
+		SendIdentify();
 	}
 	function HandleHeartbeatAck(){
 		console.log(("Heartbeat Acknowledgement OPCODE");
+	}
+
+
+	function InitHeartbeat(heartbeat_interval){
+		heartbeatLoop = setInterval(function(){
+			BeatHeart();
+		}, heartbeat_interval);
+	}
+	function BeatHeart(){
+		networking.GatewaySend(JSON.stringify({"op": 1, "d": null}));
+	}
+	function SendIdentify(){
+		networking.GatewaySend(JSON.stringify({
+			"op": 2,
+			"d": {
+				"token": token,
+				"properties": {
+					"$os": "windows",
+					"$browser": "metrexPC",
+					"$device": "metrexPC"
+				},
+				"compress": false,
+				"large_threshold": 250,
+				"presence": {
+					"game": {
+						"name": "with fire, binary fire",
+						"type": 0
+					},
+					"status": "online",
+					"since": null,
+					"afk": false
+				}
+			}
+		}));
 	}
 }

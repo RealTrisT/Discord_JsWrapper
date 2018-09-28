@@ -1,4 +1,4 @@
-https = require('https');
+https   = require('https');
 websock = require('ws');
 
 function DiscordWrapperNetworking(wSockCallback) {
@@ -55,4 +55,10 @@ DiscordWrapperNetworking.prototype.OpenGateway = async function() {
 		});	
 	}
 	return await GetIt();
+}
+
+DiscordWrapperNetworking.prototype.GatewaySend = function(senda){
+	if(SecWebsocketsConnection === undefined)return false;
+	SecWebsocketsConnection.send(senda);
+	return true;
 }
