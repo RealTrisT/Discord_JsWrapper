@@ -10,15 +10,16 @@ function DiscordWrapperNetworking(wSockCallback) {
 		method: "GET",
 		headers: {"Authorization": 'Bot ' + auth.token}
 	};
-
-/*	{	"url": string,
+																		/*	
+	{	"url": string,
 		"shards": number,
 		"session_start_limit": {
 			"total": number,
 			"remaining": number,
 			"reset_after": number
-	}	}
-*/	GatewayInfo = undefined;
+		}	
+	}		v	v	v													*/
+	GatewayInfo = undefined;
 
 	WSockCallback = wSockCallback;
 }
@@ -28,12 +29,16 @@ DiscordWrapperNetworking.prototype.GetGatewayInfo = async function() {
 
 	function GetIt(){ 
 		return new Promise((resolve, reject) => {
-			https.request(opts, function(res){
+			var req = https.request(opts, function(res){
 				//if(res.statusCode)				//TODO: handle bad shit
 				res.on('data', function (chunk) {
 					this.GatewayInfo = JSON.parse(chunk);
 					resolve(this.GatewayInfo);
-	});	});	});	}
+				});	
+			});	
+			req.end();
+		});	
+	}
 	return await GetIt();
 }
 
@@ -46,6 +51,8 @@ DiscordWrapperNetworking.prototype.OpenGateway = async function() {
 			SecWebsocketsConnection.on('message', WSockCallback);
 			SecWebsocketsConnection.on('open', function(){
 				resolve(SecWebsocketsConnection);
-	});	});	}
+			});	
+		});	
+	}
 	return await GetIt();
 }
