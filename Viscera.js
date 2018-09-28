@@ -14,7 +14,7 @@ var opts = {
 	method: "GET",
 	headers: {"Authorization": 'Bot ' + auth.token}
 }
-
+// teste 2 :D
 var req = https.request(opts, function(res){
 	console.log('STATUS: ' + res.statusCode + "\n");
 	console.log('HEADERS: ' + JSON.stringify(res.headers) + "\n");
