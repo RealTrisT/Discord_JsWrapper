@@ -1,22 +1,24 @@
 DiscordWrapperApi = require('./DiscordWrapperApi');
 auth = require('./auth.json');
 
+
 async function ey(){
 	var IOs = new DiscordWrapperApi(auth.token);
 
+	
+	function postMsg(channel_id, content){
+		IOs.networking.HttpApiSendNoResponse(
+			"POST", 
+			"/channels/" + channel_id + "/messages", 
+			JSON.stringify({'content': content})
+		);
+	}
+	
 	IOs.events.on('MESSAGE_CREATE', function(data){
 		if(data.content.substring(0, 4) == '!elp'){
-			IOs.networking.HttpApiSendNoResponse(
-				"POST", 
-				"/channels/" + data.channel_id + "/messages", 
-				JSON.stringify({'content': "https://www.google.pt/search?q=" + encodeURIComponent(data.content.substring(5))})
-			);
+			postMsg(data.channel_id, "https://www.google.pt/search?q=" + encodeURIComponent(data.content.substring(5)));
 		}else if(data.content == '!sauce'){
-			IOs.networking.HttpApiSendNoResponse(
-				"POST", 
-				"/channels/" + data.channel_id + "/messages", 
-				JSON.stringify({'content': "https://github.com/RealTrisT/Discord_JsWrapper"})
-			);
+			postMsg(data.channel_id, "https://github.com/RealTrisT/Discord_JsWrapper");
 		}
 	});
 
