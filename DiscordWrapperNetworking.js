@@ -1,14 +1,16 @@
 https   = require('https');
 websock = require('ws');
 
-function DiscordWrapperNetworking(wSockCallback) {
-	SecWebsocketsConnection = undefined;
-	WebsocketsBotDomainRequestOptions = {
+
+module.exports = function DiscordWrapperNetworking(wSockCallback, Token_) {
+	this.token = Token_;
+	this.SecWebsocketsConnection = undefined;
+	this.WebsocketsBotDomainRequestOptions = {
 		host: "discordapp.com",
 		port: 443,
 		path: "/api/gateway/bot",
 		method: "GET",
-		headers: {"Authorization": 'Bot ' + auth.token}
+		headers: {"Authorization": 'Bot ' + this.token}
 	};
 																		/*	
 	{	"url": string,
@@ -19,46 +21,44 @@ function DiscordWrapperNetworking(wSockCallback) {
 			"reset_after": number
 		}	
 	}		v	v	v													*/
-	GatewayInfo = undefined;
+	this.GatewayInfo = undefined;
 
-	WSockCallback = wSockCallback;
-}
+	this.WSockCallback = wSockCallback;
+
+
+
 
 //	ALWAYS RETURNS TRUE - gets gateway info, sets this.GatewayInfo to it
-DiscordWrapperNetworking.prototype.GetGatewayInfo = async function() {
-
-	function GetIt(){ 
+	this.GetGatewayInfo = function() {
 		return new Promise((resolve, reject) => {
-			var req = https.request(opts, function(res){
+			proxy_me = this;
+			var req = https.request(proxy_me.WebsocketsBotDomainRequestOptions, function(res){
 				//if(res.statusCode)				//TODO: handle bad shit
+				//console.log(res.statusCode);
 				res.on('data', function (chunk) {
-					this.GatewayInfo = JSON.parse(chunk);
-					resolve(this.GatewayInfo);
+					proxy_me.GatewayInfo = JSON.parse(chunk);
+					resolve(proxy_me.GatewayInfo);
 				});	
 			});	
 			req.end();
-		});	
+		});
 	}
-	return await GetIt();
-}
 
-DiscordWrapperNetworking.prototype.OpenGateway = async function() {
-	if(GatewayInfo === undefined)return false;
-
-	function GetIt(){ 
+	this.OpenGateway = function() {
 		return new Promise((resolve, reject) => {
-			SecWebsocketsConnection = new websock(ret_gateway_info.url + "/?v=6&encoding=json");
-			SecWebsocketsConnection.on('message', WSockCallback);
-			SecWebsocketsConnection.on('open', function(){
-				resolve(SecWebsocketsConnection);
+			if(this.GatewayInfo === undefined)reject();
+			this.SecWebsocketsConnection = new websock(this.GatewayInfo.url + "/?v=6&encoding=json");
+			this.SecWebsocketsConnection.on('message', this.WSockCallback);
+			this.SecWebsocketsConnection.on('open', function(){
+				resolve(this.SecWebsocketsConnection);
 			});	
 		});	
 	}
-	return await GetIt();
-}
 
-DiscordWrapperNetworking.prototype.GatewaySend = function(senda){
-	if(SecWebsocketsConnection === undefined)return false;
-	SecWebsocketsConnection.send(senda);
-	return true;
+	this.GatewaySend = function(senda){
+		if(this.SecWebsocketsConnection === undefined)return false;
+		this.SecWebsocketsConnection.send(senda);
+		return true;
+	}
+
 }

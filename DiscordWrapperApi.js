@@ -1,69 +1,70 @@
-NWORKING = require('DiscordWrapperNetworking.js');
-
-function DiscordWrapperApi(Token){
-
-	token = Token;
-	heartbeatLoop = undefined;
+DiscordWrapperNetworking = require('./DiscordWrapperNetworking.js');
 
 
-	networking = NWORKING.DiscordWrapperNetworking((data) => {
+module.exports = function DiscordWrapperApi(Token){
+	this.token = Token;
+	this.heartbeatLoop = undefined;
+
+
+	this.networking = new DiscordWrapperNetworking((data) => {
 		var GatewayOp = JSON.parse(data);
 		switch(GatewayOp.op){
 			case 0:  //EVENT DISPATCH
-				HandleEvent(GatewayOp);
+				this.HandleEvent(GatewayOp);
 			break;
 			case 1:  //HEARTBEAT
-				HandleHeartbeat();
+				this.HandleHeartbeat();
 			break;
 			case 7:  //RECONNECT
-				HandleReconnect();
+				this.HandleReconnect();
 			break;
 			case 9:  //INVALID SESSION
-				HandleInvalidSession();
+				this.HandleInvalidSession();
 			break;
 			case 10: //HELLO
-				HandleHello(GatewayOp);
+				this.HandleHello(GatewayOp);
 			break;
 			case 11: //HEARTBEAT ACK
-				HandleHeartbeatAck();
+				this.HandleHeartbeatAck();
 			break;
 		}
-	});
-	function HandleEvent(GatewayOp){
+	}, Token);
+	this.HandleEvent = function(GatewayOp){
 		console.log("Event Dispatch OPCODE" + " - " + GatewayOp.t);
 	}
-	function HandleHeartbeat(){
+	this.HandleHeartbeat = function(){
 		console.log("Heartbeat OPCODE");
 	}
-	function HandleReconnect(){
+	this.HandleReconnect = function(){
 		console.log("Reconnect OPCODE")
 	}
-	function HandleInvalidSession(){
+	this.HandleInvalidSession = function(){
 		console.log("Invalid Session OPCODE");	
 	}
-	function HandleHello(GatewayOp){
+	this.HandleHello = function(GatewayOp){
 		console.log("Hello OPCODE");
-		InitHeartbeat(rec.d.heartbeat_interval); //won't beat immediately
-		SendIdentify();
+		this.InitHeartbeat(GatewayOp.d.heartbeat_interval); //won't beat immediately
+		this.SendIdentify();
 	}
-	function HandleHeartbeatAck(){
-		console.log(("Heartbeat Acknowledgement OPCODE");
+	this.HandleHeartbeatAck = function(){
+		console.log("Heartbeat Acknowledgement OPCODE");
 	}
 
 
-	function InitHeartbeat(heartbeat_interval){
-		heartbeatLoop = setInterval(function(){
-			BeatHeart();
+	this.InitHeartbeat = function(heartbeat_interval){
+		var proxy_me = this;
+		this.heartbeatLoop = setInterval(function(){
+			proxy_me.BeatHeart();
 		}, heartbeat_interval);
 	}
-	function BeatHeart(){
-		networking.GatewaySend(JSON.stringify({"op": 1, "d": null}));
+	this.BeatHeart = function(){
+		this.networking.GatewaySend(JSON.stringify({"op": 1, "d": null}));
 	}
-	function SendIdentify(){
-		networking.GatewaySend(JSON.stringify({
+	this.SendIdentify = function(){
+		this.networking.GatewaySend(JSON.stringify({
 			"op": 2,
 			"d": {
-				"token": token,
+				"token": this.token,
 				"properties": {
 					"$os": "windows",
 					"$browser": "metrexPC",
