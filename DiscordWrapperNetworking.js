@@ -61,4 +61,24 @@ module.exports = function DiscordWrapperNetworking(wSockCallback, Token_) {
 		return true;
 	}
 
+	this.HttpApiSendNoResponse = function(Method, Path, Data){ //TODO: make dis decent
+		var opts = {
+			host: "discordapp.com",
+			port: 443,
+			path: "/api" + Path,
+			method: Method,
+			headers: {
+				"Authorization": 'Bot ' + this.token,
+				"Content-Type": "application/json"
+			}
+		};
+		var req = https.request(opts, function(res){
+			console.log("send attempt:" + res.statusCode);
+			res.on('data', function (chunk) {
+				console.log('send attempt (body): ' + chunk);
+			});
+		});
+		req.write(Data);
+		req.end();
+	}
 }

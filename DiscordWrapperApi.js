@@ -4,7 +4,7 @@ DiscordWrapperNetworking = require('./DiscordWrapperNetworking.js');
 module.exports = function DiscordWrapperApi(Token){
 	this.token = Token;
 	this.heartbeatLoop = undefined;
-
+	this.events = new (require('events'))();
 
 	this.networking = new DiscordWrapperNetworking((data) => {
 		var GatewayOp = JSON.parse(data);
@@ -31,6 +31,7 @@ module.exports = function DiscordWrapperApi(Token){
 	}, Token);
 	this.HandleEvent = function(GatewayOp){
 		console.log("Event Dispatch OPCODE" + " - " + GatewayOp.t);
+		this.events.emit(GatewayOp.t, GatewayOp.d);
 	}
 	this.HandleHeartbeat = function(){
 		console.log("Heartbeat OPCODE");
