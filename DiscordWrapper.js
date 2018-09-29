@@ -5,7 +5,6 @@ class DiscordWrapper{
 		this.ApiWrapper = new (require('./DiscordWrapperApi'))(Token_, {obj: this.events});
 
 		this.GuildCache = new Array();
-		console.log(this.GuildCache);
 
 		//All Gateway Events: https://discordapp.com/developers/docs/topics/gateway#commands-and-events-gateway-events
 		this.events.me = this; //HACK THAT SHIT LMAO
@@ -22,12 +21,36 @@ class DiscordWrapper{
 	GUILD_CREATE_handler(data){
 		this.me.GuildCache.push(data);
 	}
-	GetCachedGuild(GuildID){
-		console.log("cached guilds: " + this.GuildCache.length);
+	GetCachedGuild_ByID(GuildID){
 		for (var i = 0; i < this.GuildCache.length; i++){
-			console.log(this.GuildCache[i].name + ": ", this.GuildCache[i].id)
 			if(this.GuildCache[i].id == GuildID)return this.GuildCache[i];
 		}
+		return undefined;
+	}
+	GetCachedGuild_ByName(GuildName){
+		for (var i = 0; i < this.GuildCache.length; i++){
+			//console.log("guild search: " + this.GuildCache[i].name + " == " + GuildName);
+			if(this.GuildCache[i].name == GuildName)return this.GuildCache[i];
+		}
+		return undefined;
+	}
+
+	GetCachedRole_ByID(GuildID, RoleID){
+		var TheGuild = this.GetCachedGuild_ByID(GuildID);
+		if(TheGuild === undefined){return undefined;}
+		for (var i = 0; i < TheGuild.roles.length; i++) {
+			if(TheGuild.roles[i].id == RoleID){
+				return TheGuild.roles[i];
+		}	}
+		return undefined;
+	}
+	GetCachedRole_ByName(GuildID, RoleName){
+		var TheGuild = this.GetCachedGuild_ByID(GuildID);
+		if(TheGuild === undefined){return undefined;}
+		for (var i = 0; i < TheGuild.roles.length; i++) {
+			if(TheGuild.roles[i].name == RoleName){
+				return TheGuild.roles[i];
+		}	}
 		return undefined;
 	}
 
@@ -55,6 +78,19 @@ class DiscordWrapper{
 		return await this.ApiWrapper.networking.HttpApiSend(
 			"GET", 
 			"/channels/" + channelID + "/messages" + ((queryParams != "")?("?" + queryParams.substring(1)):(""))
+		);
+	}
+
+	async SetMemberRole(guildID, userID, roleID){
+		return await this.ApiWrapper.networking.HttpApiSend(
+			"PUT",
+			"/guilds/" + guildID + "/members/" + userID + "/roles/" + roleID
+		);
+	}
+	async RemMemberRole(guildID, userID, roleID){
+		return await this.ApiWrapper.networking.HttpApiSend(
+			"DELETE",
+			"/guilds/" + guildID + "/members/" + userID + "/roles/" + roleID
 		);
 	}
 
