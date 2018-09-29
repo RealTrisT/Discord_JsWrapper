@@ -94,6 +94,15 @@ class DiscordWrapper{
 		);
 	}
 
+	async SetMemberNick(guildID, userID, NewNick){
+		if(NewNick.length > 32)return undefined;
+		return await this.ApiWrapper.networking.HttpApiSend(
+			"PATCH",
+			"/guilds/" + guildID + "/members/" + userID,
+			JSON.stringify({'nick': NewNick})
+		);
+	}
+
 	async GetUser(userID){
 		return await this.ApiWrapper.networking.HttpApiSend(
 			"GET",
