@@ -5,15 +5,16 @@ auth = require('./auth.json');
 async function ey(){
 	var IOs = new DiscordWrapperApi(auth.token);
 
-	
-	function postMsg(channel_id, content){
-		IOs.networking.HttpApiSendNoResponse(
+
+	async function postMsg(channel_id, content){
+		var bod = await IOs.networking.HttpApiSend(
 			"POST", 
 			"/channels/" + channel_id + "/messages", 
 			JSON.stringify({'content': content})
 		);
+		console.log("response:" + bod);
 	}
-	
+
 	IOs.events.on('MESSAGE_CREATE', function(data){
 		if(data.content.substring(0, 4) == '!elp'){
 			postMsg(data.channel_id, "https://www.google.pt/search?q=" + encodeURIComponent(data.content.substring(5)));
