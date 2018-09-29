@@ -61,8 +61,9 @@ module.exports = function DiscordWrapperNetworking(wSockCallback, Token_) {
 		return true;
 	}
 
-	this.HttpApiSend = function(Method, Path, Data){ //TODO: make dis decent
+	this.HttpApiSend = function(Method, Path, Data = undefined){ //TODO: make dis decent
 		return new Promise((resolve, reject) => {
+			var DataGotten = "";
 			var opts = {
 				host: "discordapp.com",
 				port: 443,
@@ -77,10 +78,15 @@ module.exports = function DiscordWrapperNetworking(wSockCallback, Token_) {
 				//console.log("send attempt:" + res.statusCode);
 				res.on('data', function (chunk) {
 					//console.log('send attempt (body): ' + chunk);
-					resolve(chunk);
+					DataGotten+=chunk;
+					//console.log("gotChunk");
+				});
+				res.on('end', function(){
+					//console.log("finished");
+					resolve(DataGotten);
 				});
 			});
-			req.write(Data);
+			if(Data !== undefined)req.write(Data);
 			req.end();
 		});
 	}

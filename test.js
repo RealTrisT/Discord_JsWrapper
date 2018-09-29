@@ -1,30 +1,34 @@
-DiscordWrapperApi = require('./DiscordWrapperApi');
+DiscordWrapper = require('./DiscordWrapper');
 auth = require('./auth.json');
 
 
 async function ey(){
-	var IOs = new DiscordWrapperApi(auth.token);
+	var IOs = new DiscordWrapper(auth.token);
 
-
-	async function postMsg(channel_id, content){
-		var bod = await IOs.networking.HttpApiSend(
-			"POST", 
-			"/channels/" + channel_id + "/messages", 
-			JSON.stringify({'content': content})
-		);
-		console.log("response:" + bod);
-	}
-
-	IOs.events.on('MESSAGE_CREATE', function(data){
-		if(data.content.substring(0, 4) == '!elp'){
-			postMsg(data.channel_id, "https://www.google.pt/search?q=" + encodeURIComponent(data.content.substring(5)));
-		}else if(data.content == '!sauce'){
-			postMsg(data.channel_id, "https://github.com/RealTrisT/Discord_JsWrapper");
+	IOs.events.on('MESSAGE_CREATE', async function(data){
+		if(data.content.substring(0, 1) == '!'){
+			var endCmd = data.content.indexOf(' ');
+			var command = (endCmd != -1)?data.content.substring(1, endCmd):data.content.substring(1);
+//----------------------------------------------------------------
+			if(command == 'elp'){
+				IOs.CreateMessage(data.channel_id, "https://www.google.pt/search?q=" + encodeURIComponent(data.content.substring(5)));
+			}else if(command == 'sauce'){
+				IOs.CreateMessage(data.channel_id, "https://github.com/RealTrisT/Discord_JsWrapper");
+			}else if(command == 'elpb4'){
+				previousMessages = JSON.parse(await IOs.GetMessages(data.channel_id, {'before': data.id, 'limit': 1}));
+				//console.log("PREVMESSAGE(" + previousMessage.length + "): " + JSON.stringify(previousMessage);
+				IOs.DeleteMessage(data.id, data.channel_id);
+				IOs.CreateMessage(data.channel_id, 
+					"https://www.google.pt/search?q=" + encodeURIComponent(previousMessages[0].content) + " " + 
+					"<@!" + previousMessages[0].author.id + ">"
+				);
+			}
+//----------------------------------------------------------------				
 		}
 	});
 
-	await IOs.networking.GetGatewayInfo();
-	await IOs.networking.OpenGateway();
+	await IOs.ApiWrapper.networking.GetGatewayInfo();
+	await IOs.ApiWrapper.networking.OpenGateway();
 
 	console.log(IOs);
 }ey();
