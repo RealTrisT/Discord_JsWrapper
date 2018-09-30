@@ -36,11 +36,12 @@ async function ey(){
 			var command = ((endCmd != -1)?data.content.substring(1, endCmd):data.content.substring(1)).toLowerCase();
 //----------------------------------------------------------------
 			switch(command){
-				case 'elp':     Cmd_Elp(data);   break;
-				case 'elpb4':   Cmd_Elpb4(data); break;
-				case 'sauce':   Cmd_Sauce(data); break;
-				case 'grau':    Cmd_Grau(data);  break;
-				case 'nick':    Cmd_Nick(data);  break;
+				case 'dropbox': Cmd_Dropbox(data);break;
+				case 'elp':     Cmd_Elp(data);    break;
+				case 'elpb4':   Cmd_Elpb4(data);  break;
+				case 'sauce':   Cmd_Sauce(data);  break;
+				case 'grau':    Cmd_Grau(data);   break;
+				case 'nick':    Cmd_Nick(data);   break;
 			}
 //----------------------------------------------------------------				
 		}
@@ -66,6 +67,14 @@ async function Cmd_Elpb4(data){
 		"https://www.google.pt/search?q=" + encodeURIComponent(previousMessages[0].content) + " " + 
 		"<@!" + previousMessages[0].author.id + ">"
 	);	
+}
+
+function Cmd_Dropbox(data){
+	IOs.CreateMessage(data.channel_id, "https://www.dropbox.com/sh/o2vjinvzog8bpp5/AACXF6m82edwyVBUkCrygDMia?dl=0");
+}
+
+function Cmd_Help(data){
+	IOs.CreateMessage(data.channel_id, "https://www.dropbox.com/sh/o2vjinvzog8bpp5/AACXF6m82edwyVBUkCrygDMia?dl=0");
 }
 
 
@@ -115,7 +124,7 @@ async function NewMember(data){
 	IOs.SetMemberRole(MyGuildID, data.user.id, MyRoles['Turista']);
 	await IOs.CreateMessage(MyChannels['new'], "\
 <@" + data.user.id + "> sup manegga\nO teu role de momento é Turista, és basicamente lixo. \n\
-Faz \"!grau TeuNumeroDeMatriculas\" e \"!nick TeuNome\" , para passares a ser alguém.\n\
+Faz \"!grau TeuNumeroDeMatriculasNesteCurso\" e \"!nick TeuNome\" , para passares a ser alguém.\n\
 (a partir de " + (32 - data.user.username.length - 3) + " caracteres o teu nick começa a cortar o teu nome original)\n\
 Peço desculpa por esta merda mas n custa nada e evita confusão. https://i.imgur.com/9CAjIPG.png"
 	);
