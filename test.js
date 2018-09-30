@@ -29,9 +29,11 @@ async function ey(){
 	IOs.on('GUILD_MEMBER_ADD', NewMember);
 
 	IOs.on('MESSAGE_CREATE', async function(data){
+		//if(data.content.indexOf('bot') != -1)IOs.CreateMessage(data.channel_id, "<@!" + data.author.id + "> vai pó caralho urso de merda fds");
+
 		if(data.content.substring(0, 1) == '!'){
 			var endCmd = data.content.indexOf(' ');
-			var command = (endCmd != -1)?data.content.substring(1, endCmd):data.content.substring(1);
+			var command = ((endCmd != -1)?data.content.substring(1, endCmd):data.content.substring(1)).toLowerCase();
 //----------------------------------------------------------------
 			switch(command){
 				case 'elp':     Cmd_Elp(data);   break;
@@ -48,7 +50,9 @@ async function ey(){
 }ey();
 
 function Cmd_Elp(data){
-	IOs.CreateMessage(data.channel_id, "https://www.google.pt/search?q=" + encodeURIComponent(data.content.substring(5)));
+	var search = data.content.substring(5);
+	if(search == "")IOs.CreateMessage(data.channel_id, "https://www.google.com");
+	else IOs.CreateMessage(data.channel_id, "https://www.google.com/search?q=" + encodeURIComponent(search));
 }
 
 function Cmd_Sauce(data){
