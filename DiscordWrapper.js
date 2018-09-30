@@ -102,6 +102,21 @@ class DiscordWrapper{
 		);
 	}
 
+	async GetGuildMember(guildID, userID){
+		return await this.ApiWrapper.networking.HttpApiSend(
+			"GET",
+			"/guilds/" + guildID + "/members/" + userID
+		);
+	}
+
+	async ModifyGuildMember(guildID, userID, data){
+		return await this.ApiWrapper.networking.HttpApiSend(
+			"PATCH",
+			"/guilds/" + guildID + "/members/" + userID,
+			JSON.stringify(data)
+		);
+	}
+
 	async SetMemberNick(guildID, userID, NewNick){
 		if(NewNick.length > 32)return undefined;
 		return await this.ApiWrapper.networking.HttpApiSend(
