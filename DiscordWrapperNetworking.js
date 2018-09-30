@@ -2,7 +2,7 @@ https   = require('https');
 websock = require('ws');
 
 
-module.exports = function DiscordWrapperNetworking(wSockCallback, Token_) {
+module.exports = function DiscordWrapperNetworking(wSockCallback, wSockFailCallbackInfo, Token_) {
 	this.token = Token_;
 	this.SecWebsocketsConnection = undefined;
 	this.WebsocketsBotDomainRequestOptions = {
@@ -24,23 +24,33 @@ module.exports = function DiscordWrapperNetworking(wSockCallback, Token_) {
 	this.GatewayInfo = undefined;
 
 	this.WSockCallback = wSockCallback;
-
-
-
+	this.WSockFailCallbackInfo = wSockFailCallbackInfo;
 
 //	ALWAYS RETURNS TRUE - gets gateway info, sets this.GatewayInfo to it
 	this.GetGatewayInfo = function() {
 		return new Promise((resolve, reject) => {
+			console.log("GetGatewayInfo called");
 			proxy_me = this;
-			var req = https.request(proxy_me.WebsocketsBotDomainRequestOptions, function(res){
-				//if(res.statusCode)				//TODO: handle bad shit
-				//console.log(res.statusCode);
-				res.on('data', function (chunk) {
-					proxy_me.GatewayInfo = JSON.parse(chunk);
-					resolve(proxy_me.GatewayInfo);
+			try{
+				var req = https.request(proxy_me.WebsocketsBotDomainRequestOptions, function(res){
+					//if(res.statusCode)				//TODO: handle bad shit
+					//console.log(res.statusCode);
+					res.on('data', function (chunk) {
+						proxy_me.GatewayInfo = JSON.parse(chunk);
+						console.log("GetGatewayInfo success");
+						resolve(true);
+					});	
 				});	
-			});	
-			req.end();
+				req.on('error', function(error){
+					proxy_me.GatewayInfo = undefined;
+					console.log("GetGatewayInfo failiure(1)");
+					resolve(false);
+				});
+				req.end();
+			}catch(e){
+				console.log("GetGatewayInfo failiure(2)");
+				resolve(e);
+			}
 		});
 	}
 
@@ -57,7 +67,11 @@ module.exports = function DiscordWrapperNetworking(wSockCallback, Token_) {
 
 	this.GatewaySend = function(senda){
 		if(this.SecWebsocketsConnection === undefined)return false;
-		this.SecWebsocketsConnection.send(senda);
+		try{
+			this.SecWebsocketsConnection.send(senda);
+		}catch(e){
+			this.WSockFailCallbackInfo.callback(e, this.WSockFailCallbackInfo.param);
+		}
 		return true;
 	}
 

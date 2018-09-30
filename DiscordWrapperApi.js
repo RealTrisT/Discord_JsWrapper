@@ -1,67 +1,79 @@
-DiscordWrapperNetworking = require('./DiscordWrapperNetworking.js');
+module.exports = class DiscordWrapperApi{
+	constructor(Token){
+		this.token = Token;
+		this.heartbeatLoop = undefined;
+		this.events	= new (require('events'))();
+		this.session = {sequence_nr: undefined, session_id: undefined}
 
+		this.networking = new (require('./DiscordWrapperNetworking.js'))((data) => {
+			var GatewayOp = JSON.parse(data);
+			switch(GatewayOp.op){
+				case 0:  //EVENT DISPATCH
+					this.HandleEvent(GatewayOp);
+					this.session.sequence_nr = GatewayOp.s;
+				break;
+				case 1:  //HEARTBEAT
+					this.HandleHeartbeat();
+				break;
+				case 7:  //RECONNECT
+					this.HandleReconnect();
+				break;
+				case 9:  //INVALID SESSION
+					this.HandleInvalidSession();
+				break;
+				case 10: //HELLO
+					this.HandleHello(GatewayOp);
+				break;
+				case 11: //HEARTBEAT ACK
+					this.HandleHeartbeatAck();
+				break;
+			}
+		}, {'callback': this.WSockFailCallback, 'param': this}, Token);
 
-module.exports = function DiscordWrapperApi(Token, EventHandler){
-	this.token = Token;
-	this.heartbeatLoop = undefined;
-	this.events = EventHandler;
-
-	this.networking = new DiscordWrapperNetworking((data) => {
-		var GatewayOp = JSON.parse(data);
-		switch(GatewayOp.op){
-			case 0:  //EVENT DISPATCH
-				this.HandleEvent(GatewayOp);
-			break;
-			case 1:  //HEARTBEAT
-				this.HandleHeartbeat();
-			break;
-			case 7:  //RECONNECT
-				this.HandleReconnect();
-			break;
-			case 9:  //INVALID SESSION
-				this.HandleInvalidSession();
-			break;
-			case 10: //HELLO
-				this.HandleHello(GatewayOp);
-			break;
-			case 11: //HEARTBEAT ACK
-				this.HandleHeartbeatAck();
-			break;
-		}
-	}, Token);
-	this.HandleEvent = function(GatewayOp){
-		console.log("Event Dispatch OPCODE" + " - " + GatewayOp.t);
-		this.events.obj.emit(GatewayOp.t, GatewayOp.d);
+		this.events.on('READY', (data) => {this.session.session_id = data.session_id;});
 	}
-	this.HandleHeartbeat = function(){
+
+	async WSockFailCallback(error, proxy_me){
+		console.log("-----------WSOCK DIED------------- (" + error + ")");
+		if(proxy_me.heartbeatLoop !== undefined)clearInterval(proxy_me.heartbeatLoop);
+		if(await proxy_me.networking.GetGatewayInfo() === true)proxy_me.networking.OpenGateway();
+		else proxy_me.events.emit('error', {code: 1, text: "Gateway Connection Dropped, Failed to Reconnect."});
+	}
+
+	HandleEvent(GatewayOp){
+		console.log("Event Dispatch OPCODE" + " - " + GatewayOp.t);
+		this.events.emit(GatewayOp.t, GatewayOp.d);
+	}
+	HandleHeartbeat(){
 		console.log("Heartbeat OPCODE");
 	}
-	this.HandleReconnect = function(){
+	HandleReconnect(){
 		console.log("Reconnect OPCODE")
 	}
-	this.HandleInvalidSession = function(){
+	HandleInvalidSession(){
 		console.log("Invalid Session OPCODE");	
 	}
-	this.HandleHello = function(GatewayOp){
+	HandleHello(GatewayOp){
 		console.log("Hello OPCODE");
 		this.InitHeartbeat(GatewayOp.d.heartbeat_interval); //won't beat immediately
-		this.SendIdentify();
+		if(this.session.session_id === undefined)this.SendIdentify(); //connecting
+		else this.SendReconnect();									  //reconnecting
 	}
-	this.HandleHeartbeatAck = function(){
+	HandleHeartbeatAck(){
 		console.log("Heartbeat Acknowledgement OPCODE");
 	}
 
 
-	this.InitHeartbeat = function(heartbeat_interval){
+	InitHeartbeat(heartbeat_interval){
 		var proxy_me = this;
 		this.heartbeatLoop = setInterval(function(){
 			proxy_me.BeatHeart();
 		}, heartbeat_interval);
 	}
-	this.BeatHeart = function(){
-		this.networking.GatewaySend(JSON.stringify({"op": 1, "d": null}));
+	BeatHeart(){
+		this.networking.GatewaySend(JSON.stringify({"op": 1, "d": this.session.sequence_nr}));
 	}
-	this.SendIdentify = function(){
+	SendIdentify(){
 		this.networking.GatewaySend(JSON.stringify({
 			"op": 2,
 			"d": {
@@ -85,4 +97,15 @@ module.exports = function DiscordWrapperApi(Token, EventHandler){
 			}
 		}));
 	}
+	SendReconnect(){
+		this.networking.GatewaySend(JSON.stringify({
+			"op": 6,
+			"d": {
+				"token": this.token,
+				"session_id": this.session.session_id,
+				"seq": this.session.sequence_nr
+			}
+		}));
+	}
+
 }

@@ -1,26 +1,34 @@
 module.exports = 
 class DiscordWrapper{
 	constructor(Token_){
-		this.events 	= new (require('events'))();
-		this.ApiWrapper = new (require('./DiscordWrapperApi'))(Token_, {obj: this.events});
+		this.ApiWrapper = new (require('./DiscordWrapperApi'))(Token_);
 
 		this.GuildCache = new Array();
 
 		//All Gateway Events: https://discordapp.com/developers/docs/topics/gateway#commands-and-events-gateway-events
-		this.events.me = this; //HACK THAT SHIT LMAO
-		this.events.on('GUILD_CREATE', this.GUILD_CREATE_handler);
+
+		this.ApiWrapper.events.on('GUILD_CREATE', (data) => {this.GuildCache.push(data);});
+	}
+
+	on(eventName, callback){
+		this.ApiWrapper.events.on(eventName, callback);
 	}
 
 	async Initialize(){
-		await this.ApiWrapper.networking.GetGatewayInfo();
-		await this.ApiWrapper.networking.OpenGateway();
+		if(await this.ApiWrapper.networking.GetGatewayInfo() === true){
+			await this.ApiWrapper.networking.OpenGateway();
+			return true;
+		}else return false;
 	}
 
+	async AttemptReconnection(){
+		if(await this.ApiWrapper.networking.GetGatewayInfo() === true){
+			await this.ApiWrapper.networking.OpenGateway();
+			return true;
+		}else return false;
+	}
 
 	//https://discordapp.com/developers/docs/resources/guild#guild-object
-	GUILD_CREATE_handler(data){
-		this.me.GuildCache.push(data);
-	}
 	GetCachedGuild_ByID(GuildID){
 		for (var i = 0; i < this.GuildCache.length; i++){
 			if(this.GuildCache[i].id == GuildID)return this.GuildCache[i];

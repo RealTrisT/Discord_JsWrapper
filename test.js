@@ -9,33 +9,42 @@ var MyChannels = {};
 async function ey(){
 	IOs = new DiscordWrapper(auth.token);
 
-	IOs.events.on('GUILD_CREATE', function(){
+	IOs.on('error', function(error){
+		if(error.code == 1){	//disconnect
+			console.log("Got Connection Fuck Error");
+			var eh = setInterval(async () => {
+				if(await IOs.AttemptReconnection()){clearInterval(eh); console.log("we're back baby");}
+				else console.log("Still Nothing")
+			}, 5000);
+		}
+	});
+
+	IOs.on('GUILD_CREATE', function(){
 		MyGuildID = IOs.GetCachedGuild_ByName("TheThriftShop"); //temp
 		MyGuildID.roles.forEach((role) => {MyRoles[role.name] = role.id;});
 		MyGuildID.channels.forEach((channel) => {MyChannels[channel.name] = channel.id;});
 		MyGuildID = MyGuildID.id;
 	});
 
-	IOs.events.on('GUILD_MEMBER_ADD', NewMember);
+	IOs.on('GUILD_MEMBER_ADD', NewMember);
 
-	IOs.events.on('MESSAGE_CREATE', async function(data){
+	IOs.on('MESSAGE_CREATE', async function(data){
 		if(data.content.substring(0, 1) == '!'){
 			var endCmd = data.content.indexOf(' ');
 			var command = (endCmd != -1)?data.content.substring(1, endCmd):data.content.substring(1);
 //----------------------------------------------------------------
 			switch(command){
-				case 'elp':   Cmd_Elp(data);   break;
-				case 'elpb4': Cmd_Elpb4(data); break;
-				case 'sauce': Cmd_Sauce(data); break;
-				case 'grau':  Cmd_Grau(data);  break;
-				case 'nick':  Cmd_Nick(data);  break;
+				case 'elp':     Cmd_Elp(data);   break;
+				case 'elpb4':   Cmd_Elpb4(data); break;
+				case 'sauce':   Cmd_Sauce(data); break;
+				case 'grau':    Cmd_Grau(data);  break;
+				case 'nick':    Cmd_Nick(data);  break;
 			}
 //----------------------------------------------------------------				
 		}
 	});
 
-	await IOs.ApiWrapper.networking.GetGatewayInfo();
-	await IOs.ApiWrapper.networking.OpenGateway();
+	if(await IOs.ApiWrapper.networking.GetGatewayInfo() === true)await IOs.ApiWrapper.networking.OpenGateway();
 }ey();
 
 function Cmd_Elp(data){
@@ -107,6 +116,3 @@ Faz \"!grau TeuNumeroDeMatriculas\" e \"!nick TeuNome\" , para passares a ser al
 Peço desculpa por esta merda mas n custa nada e evita confusão. https://i.imgur.com/9CAjIPG.png"
 	);
 }
-
-
-
