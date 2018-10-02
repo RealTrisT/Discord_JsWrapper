@@ -6,8 +6,8 @@ var commands = {
 	'grau':    cmd_grau,
 	'nick':    cmd_nick,
 	'elp':     cmd_elp,
-	'subscribe':       require("./subscribeChannels"),
-	'unsubscribe':     require("./unsubscribeChannels")
+	'subscribe':       require("./subscribeChannels").cmd_subscribe,
+	'unsubscribe':     require("./subscribeChannels").cmd_unsubscribe
 };
 
 module.exports = function(Viscera, command, data){ //PROCESS
