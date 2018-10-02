@@ -5,7 +5,9 @@ var commands = {
 	'help':    cmd_help,
 	'grau':    cmd_grau,
 	'nick':    cmd_nick,
-	'elp':     cmd_elp
+	'elp':     cmd_elp,
+	'subscribe':       require("./subscribeChannels"),
+	'unsubscribe':     require("./unsubscribeChannels")
 };
 
 module.exports = function(Viscera, command, data){ //PROCESS
@@ -34,8 +36,8 @@ function cmd_dropbox(Viscera, data){
 async function cmd_elpb4(Viscera, data){
 	var previousMessages = JSON.parse(await Viscera.IOs.GetMessages(data.channel_id, {'before': data.id, 'limit': 1}));
 	Viscera.IOs.DeleteMessage(data.id, data.channel_id);
-	Viscera.IOs.CreateMessage(data.channel_id, 
-		"https://www.google.pt/search?q=" + encodeURIComponent(previousMessages[0].content) + " " + 
+	Viscera.IOs.CreateMessage(data.channel_id,
+		"https://www.google.pt/search?q=" + encodeURIComponent(previousMessages[0].content) + " " +
 		"<@!" + previousMessages[0].author.id + ">"
 	);
 }
@@ -59,7 +61,7 @@ function cmd_grau(Viscera, data){
 		templogginin.Grau = {isset: true, val: which};
 		Viscera.LogUserIn(data, templogginin);
 		delete Viscera.LoggingInPeople[data.author.id];
-	}	
+	}
 }
 
 function cmd_nick(Viscera, data){
