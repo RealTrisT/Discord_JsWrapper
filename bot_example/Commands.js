@@ -9,7 +9,8 @@ var commands = {
 };
 
 module.exports = function(Viscera, command, data){ //PROCESS
-	commands[command](Viscera, data);
+	var cmdf = commands[command];
+	if(cmdf !== undefined)cmdf(Viscera, data);
 }
 
 function cmd_help(Viscera, data){
